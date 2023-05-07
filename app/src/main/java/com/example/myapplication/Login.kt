@@ -54,7 +54,7 @@ class Login : AppCompatActivity() {
                                 user.signOut()
                                 binding.loginLayout.visibility = View.VISIBLE
                                 binding.loaderLayout.visibility = View.GONE
-                                Toast.makeText(this, "Wrong Patient Account Details", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Entered Account Details are wrong", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }else{

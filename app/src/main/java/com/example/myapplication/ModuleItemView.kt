@@ -21,6 +21,8 @@ class ModuleItemView : AppCompatActivity() {
     private lateinit var studentArrayList : ArrayList<Material>
     private lateinit var studentRecyclerView : RecyclerView
 
+    private var currentUserType = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityModuleItemViewBinding.inflate(layoutInflater)
         user = FirebaseAuth.getInstance()
@@ -28,6 +30,17 @@ class ModuleItemView : AppCompatActivity() {
         setContentView(binding.root)
 
         val moduleId = intent.getStringExtra("moduleId")
+        val userType = intent.getStringExtra("userType")
+
+        if(userType.toString() == "Student"){
+            binding.moduleActions.visibility = View.GONE
+            binding.delete.visibility = View.GONE
+        }else if(userType.toString() == "Teacher"){
+            binding.moduleActions.visibility = View.VISIBLE
+            binding.delete.visibility = View.VISIBLE
+        }
+
+        currentUserType = userType.toString()
 
         readData(moduleId.toString())
 
@@ -49,6 +62,12 @@ class ModuleItemView : AppCompatActivity() {
             }
             startActivity(intent)
         }
+        binding.delete.setOnClickListener{
+            var intent = Intent(this,DeleteItem::class.java).also {
+                it.putExtra("moduleId",moduleId.toString())
+            }
+            startActivity(intent)
+        }
     }
 
     private fun readData(moduleId:String){
@@ -64,20 +83,26 @@ class ModuleItemView : AppCompatActivity() {
     private fun readMaterials(moduleId:String){
         binding.dataLayout.visibility = View.GONE
         binding.loaderLayout.visibility = View.VISIBLE
+        binding.noDataLayout.visibility = View.GONE
+
         studentArrayList.clear()
-        FirebaseDatabase.getInstance().getReference("Material").addListenerForSingleValueEvent(object :
-            ValueEventListener {
+        FirebaseDatabase.getInstance().getReference("Material")
+            .orderByChild("moduleId")
+            .equalTo(moduleId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
                     for(childSnapshot in snapshot.children){
-                        if(childSnapshot.child("moduleId").value.toString() == moduleId){
-                            val material =  childSnapshot.getValue(Material::class.java)
-                            studentArrayList.add(material!!)
-                        }
+                        val material =  childSnapshot.getValue(Material::class.java)
+                        studentArrayList.add(material!!)
                     }
                     studentRecyclerView.adapter = MaterialAdapter(studentArrayList,this@ModuleItemView)
                     binding.dataLayout.visibility = View.VISIBLE
                     binding.loaderLayout.visibility = View.GONE
+                }else{
+                    binding.dataLayout.visibility = View.GONE
+                    binding.loaderLayout.visibility = View.GONE
+                    binding.noDataLayout.visibility = View.VISIBLE
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -86,7 +111,12 @@ class ModuleItemView : AppCompatActivity() {
         })
     }
     fun onItemClick(position: Int) {
-
+        var current = studentArrayList[position]
+        var intent = Intent(this,ViewMaterial::class.java).also {
+            it.putExtra("materialId",current.materialId)
+            it.putExtra("userType",currentUserType)
+        }
+        startActivity(intent)
     }
 
 }

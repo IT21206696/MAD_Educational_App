@@ -36,20 +36,25 @@ class ViewModules : AppCompatActivity() {
     private fun readData(userid:String){
         binding.dataLayout.visibility = View.GONE
         binding.loaderLayout.visibility = View.VISIBLE
+        binding.noDataLayout.visibility = View.GONE
         moduleArrayList.clear()
-        FirebaseDatabase.getInstance().getReference("Module").addListenerForSingleValueEvent(object :
-            ValueEventListener {
+        FirebaseDatabase.getInstance().getReference("Module")
+            .orderByChild("teacherId")
+            .equalTo(userid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
                     for(fineSnapshot in snapshot.children){
-                        if(fineSnapshot.child("teacherId").value.toString() == userid){
-                            val moduleItem =  fineSnapshot.getValue(Module::class.java)
-                            moduleArrayList.add(moduleItem!!)
-                        }
+                        val moduleItem =  fineSnapshot.getValue(Module::class.java)
+                        moduleArrayList.add(moduleItem!!)
                     }
                     moduleRecyclerView.adapter = ModuleAdapter(moduleArrayList,this@ViewModules)
                     binding.dataLayout.visibility = View.VISIBLE
                     binding.loaderLayout.visibility = View.GONE
+                }else{
+                    binding.dataLayout.visibility = View.GONE
+                    binding.loaderLayout.visibility = View.GONE
+                    binding.noDataLayout.visibility = View.VISIBLE
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -58,9 +63,10 @@ class ViewModules : AppCompatActivity() {
         })
     }
     fun onItemClick(position: Int) {
-        var currentPregnancy = moduleArrayList[position]
+        var current = moduleArrayList[position]
         var intent = Intent(this,ModuleItemView::class.java).also {
-            it.putExtra("moduleId",currentPregnancy.moduleId)
+            it.putExtra("moduleId",current.moduleId)
+            it.putExtra("userType","Teacher")
         }
         startActivity(intent)
     }

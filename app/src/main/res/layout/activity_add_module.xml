@@ -162,7 +162,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:background="@drawable/main_btn"
-                android:text="Add Module"
+                android:text="..Add Module"
                 android:textColor="@color/white" />
         </LinearLayout>
 

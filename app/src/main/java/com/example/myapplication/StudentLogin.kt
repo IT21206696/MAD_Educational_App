@@ -40,7 +40,7 @@ class StudentLogin : AppCompatActivity() {
 
                         FirebaseDatabase.getInstance().getReference("Student").child(user.uid.toString()).get().addOnSuccessListener {
                             if(it.exists()){
-                                val intent = Intent(this,Dashboard::class.java)
+                                val intent = Intent(this,StudentDashboard::class.java)
                                 startActivity(intent)
                                 overridePendingTransition(R.anim.fadein,R.anim.so_slide)
                                 finish()
@@ -48,7 +48,7 @@ class StudentLogin : AppCompatActivity() {
                                 user.signOut()
                                 binding.loginLayout.visibility = View.VISIBLE
                                 binding.loaderLayout.visibility = View.GONE
-                                Toast.makeText(this, "Wrong Patient Account Details", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Entered Details are wrong.", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }else{
@@ -69,7 +69,10 @@ class StudentLogin : AppCompatActivity() {
                                 Toast.makeText(this, "Server Error", Toast.LENGTH_SHORT).show()
                             }
                         } else if (exception is FirebaseAuthInvalidUserException) {
-                            Toast.makeText(this, "Srver Error occured", Toast.LENGTH_SHORT).show()
+                            binding.loginLayout.visibility = View.VISIBLE
+                            binding.loaderLayout.visibility = View.GONE
+                            val errorCode = exception.errorCode
+                            Toast.makeText(this, errorCode, Toast.LENGTH_SHORT).show()
                         } else {
                             binding.loginLayout.visibility = View.VISIBLE
                             binding.loaderLayout.visibility = View.GONE

@@ -24,6 +24,10 @@ class AddModuleStudents : AppCompatActivity() {
 
     private var moduleIndex = ""
 
+    private var counter = 0
+    private var childCounter = 0
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityAddModuleStudentsBinding.inflate(layoutInflater)
         user = FirebaseAuth.getInstance()
@@ -37,34 +41,65 @@ class AddModuleStudents : AppCompatActivity() {
         studentRecyclerView.layoutManager = LinearLayoutManager(this)
         studentRecyclerView.setHasFixedSize(true)
         studentArrayList = arrayListOf<Student>()
-        readData(user.uid.toString())
+        readData(user.uid.toString(),moduleId.toString())
 
-        binding.addStudent.setOnClickListener{
-            addStudent(moduleId.toString())
-        }
     }
 
-    private fun readData(userid:String){
+    private fun readData(userid:String,moduleId: String){
         binding.dataLayout.visibility = View.GONE
         binding.loaderLayout.visibility = View.VISIBLE
         studentArrayList.clear()
-        FirebaseDatabase.getInstance().getReference("Student").addListenerForSingleValueEvent(object :
-            ValueEventListener {
+        counter = 0
+
+        FirebaseDatabase.getInstance().getReference("Student")
+            .orderByChild("teacherId")
+            .equalTo(userid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
-                    for(fineSnapshot in snapshot.children){
-                        if(fineSnapshot.child("teacherId").value.toString() == userid){
-                            val studentItem =  fineSnapshot.getValue(Student::class.java)
-                            studentArrayList.add(studentItem!!)
-                        }
+                    for(childSnapshot in snapshot.children){
+
+                        FirebaseDatabase.getInstance().getReference("Enroll")
+                            .orderByChild("studentId")
+                            .equalTo(childSnapshot.key.toString())
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(enrollSnap: DataSnapshot) {
+                                    counter++
+                                    if(enrollSnap.exists()){
+                                        childCounter = 0
+                                        for(childEnroll in enrollSnap.children){
+                                            childCounter++
+                                            if(childEnroll.child("moduleId").value.toString() == moduleId){
+                                                break
+                                            }
+
+                                            if(childCounter == enrollSnap.childrenCount.toInt()){
+                                                val studentItem =  childSnapshot.getValue(Student::class.java)
+                                                studentArrayList.add(studentItem!!)
+                                            }
+
+                                        }
+                                    }else{
+                                        //can add user
+                                        val studentItem =  childSnapshot.getValue(Student::class.java)
+                                        studentArrayList.add(studentItem!!)
+                                    }
+
+                                    if(counter == snapshot.childrenCount.toInt()){
+                                        studentRecyclerView.adapter = AddStudentAdapter(studentArrayList,this@AddModuleStudents)
+                                        binding.dataLayout.visibility = View.VISIBLE
+                                        binding.loaderLayout.visibility = View.GONE
+                                    }
+                                }
+                                override fun onCancelled(error: DatabaseError) {
+                                    Toast.makeText(this@AddModuleStudents, "Error retrieving Enroll data", Toast.LENGTH_SHORT).show()
+                                }
+                            })
                     }
-                    studentRecyclerView.adapter = AddStudentAdapter(studentArrayList,this@AddModuleStudents)
-                    binding.dataLayout.visibility = View.VISIBLE
-                    binding.loaderLayout.visibility = View.GONE
                 }
             }
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@AddModuleStudents, "error", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AddModuleStudents, "error2", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -74,48 +109,6 @@ class AddModuleStudents : AppCompatActivity() {
             it.putExtra("moduleId",moduleIndex)
         }
         startActivity(intent)
+        finish()
     }
-
-
-    private fun addStudent(moduleId:String){
-        var nanasaId = binding.nanasaId.text.toString()
-        if(nanasaId.isNotEmpty()){
-
-            binding.nanasaSearching.visibility = View.GONE
-            binding.nanasaLoading.visibility = View.VISIBLE
-
-            FirebaseDatabase.getInstance().getReference("Student")
-                .orderByChild("nanasaId")
-                .equalTo(nanasaId)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        if(snapshot.exists()){
-                            for(childSnapshot in snapshot.children){
-                                var intent = Intent(this@AddModuleStudents,ConfirmAddModuleStudent::class.java).also {
-                                    it.putExtra("studentId",childSnapshot.key.toString())
-                                    it.putExtra("moduleId",moduleId)
-                                }
-                                startActivity(intent)
-                            }
-                        }else{
-                            binding.nanasaSearching.visibility = View.VISIBLE
-                            binding.nanasaLoading.visibility = View.GONE
-                            Toast.makeText(this@AddModuleStudents, "Entered Nanasa ID is wrong.", Toast.LENGTH_SHORT).show()
-                        }
-
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        // handle error
-                        binding.nanasaSearching.visibility = View.VISIBLE
-                        binding.nanasaLoading.visibility = View.GONE
-                    }
-                })
-
-
-        }else{
-            Toast.makeText(this, "Enter a nanasa ID to search", Toast.LENGTH_SHORT).show()
-        }
-    }
-
 }

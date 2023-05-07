@@ -15,8 +15,8 @@ class StudentAdapter(private val studentList:ArrayList<Student>, private val lis
     }
     override fun onBindViewHolder(holder: StudentViewHolder, position: Int) {
         val currentItem = studentList[position]
-        holder.name.text = "Module Name : ${currentItem.firstName.toString()} ${currentItem.lastName.toString()}"
-        holder.id.text = "module Code : ${currentItem.nanasaId.toString()}"
+        holder.name.text = "Student Name : ${currentItem.firstName.toString()} ${currentItem.lastName.toString()}"
+        holder.id.text = "Nanasa ID : ${currentItem.nanasaId.toString()}"
     }
     override fun getItemCount(): Int {
         return studentList.size

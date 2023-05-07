@@ -7,6 +7,7 @@ import android.os.Handler
 import android.widget.Toast
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,10 +33,24 @@ class MainActivity : AppCompatActivity() {
                     overridePendingTransition(R.anim.fadein,R.anim.so_slide)
                     finish()
                 }else{
-                    val intent = Intent(this,Dashboard::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(R.anim.fadein,R.anim.so_slide)
-                    finish()
+
+                    FirebaseDatabase.getInstance().getReference("Teacher").child(user.uid.toString()).get().addOnSuccessListener {
+                        if (it.exists()){
+                            val intent = Intent(this,Dashboard::class.java)
+                            startActivity(intent)
+                            overridePendingTransition(R.anim.fadein,R.anim.so_slide)
+                            finish()
+                        }else{
+                            FirebaseDatabase.getInstance().getReference("Student").child(user.uid.toString()).get().addOnSuccessListener {
+                                if(it.exists()){
+                                    val intent = Intent(this,StudentDashboard::class.java)
+                                    startActivity(intent)
+                                    overridePendingTransition(R.anim.fadein,R.anim.so_slide)
+                                    finish()
+                                }
+                            }
+                        }
+                    }
                 }
             },2000)
         } else {

@@ -42,6 +42,7 @@ class ViewModuleStudents : AppCompatActivity() {
                 it.putExtra("moduleId",moduleId.toString())
             }
             startActivity(intent)
+            finish()
         }
 
     }
@@ -50,32 +51,37 @@ class ViewModuleStudents : AppCompatActivity() {
         binding.dataLayout.visibility = View.GONE
         binding.loaderLayout.visibility = View.VISIBLE
         studentArrayList.clear()
-        FirebaseDatabase.getInstance().getReference("Enroll").addListenerForSingleValueEvent(object :
-            ValueEventListener {
+        counter = 0
+
+        FirebaseDatabase.getInstance().getReference("Enroll")
+            .orderByChild("moduleId")
+            .equalTo(moduleId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
-                    for(childSnapshot in snapshot.children){
-                        if(childSnapshot.child("moduleId").value.toString() == moduleId){
-                            var studentId = childSnapshot.child("studentId").value.toString()
-                            FirebaseDatabase.getInstance().getReference("Student").child(studentId).get().addOnSuccessListener {
-                                if (it.exists()){
-                                    val studentItem =  it.getValue(Student::class.java)
-                                    studentArrayList.add(studentItem!!)
-                                    counter++
-                                    if (counter == snapshot.childrenCount.toInt()) {
-                                        // All data has been fetched, set the adapter and hide the loader
-                                        studentRecyclerView.adapter = ModuleStudentAdapter(studentArrayList,this@ViewModuleStudents)
-                                        binding.dataLayout.visibility = View.VISIBLE
-                                        binding.loaderLayout.visibility = View.GONE
-                                    }
 
+                    for(childSnapshot in snapshot.children){
+                        var studentId = childSnapshot.child("studentId").value.toString()
+                        FirebaseDatabase.getInstance().getReference("Student").child(studentId).get().addOnSuccessListener {
+                            if (it.exists()){
+                                //Toast.makeText(this@ViewModuleStudents, it.value.toString(), Toast.LENGTH_SHORT).show()
+
+                                val studentItem =  it.getValue(Student::class.java)
+                                studentArrayList.add(studentItem!!)
+                                counter++
+
+                                if (counter == snapshot.childrenCount.toInt()) {
+                                    // All data has been fetched, set the adapter and hide the loader
+                                    studentRecyclerView.adapter = ModuleStudentAdapter(studentArrayList,this@ViewModuleStudents)
+                                    binding.dataLayout.visibility = View.VISIBLE
+                                    binding.loaderLayout.visibility = View.GONE
                                 }
                             }
                         }
                     }
-                    //studentRecyclerView.adapter = ModuleStudentAdapter(studentArrayList,this@ViewModuleStudents)
-                    //binding.dataLayout.visibility = View.VISIBLE
-                    //binding.loaderLayout.visibility = View.GONE
+
+                }else{
+                    //no data
                 }
             }
             override fun onCancelled(error: DatabaseError) {

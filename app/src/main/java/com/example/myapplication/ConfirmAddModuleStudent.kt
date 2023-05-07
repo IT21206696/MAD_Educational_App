@@ -32,6 +32,7 @@ class ConfirmAddModuleStudent : AppCompatActivity() {
                 it.putExtra("moduleId",moduleId.toString())
             }
             startActivity(intent)
+            finish()
         }
 
         binding.addStudents.setOnClickListener{
@@ -44,6 +45,7 @@ class ConfirmAddModuleStudent : AppCompatActivity() {
         binding.backToModule.setOnClickListener{
             var intent = Intent(this,ModuleItemView::class.java).also {
                 it.putExtra("moduleId",moduleId.toString())
+                it.putExtra("userType","Teacher")
             }
             startActivity(intent)
             finish()

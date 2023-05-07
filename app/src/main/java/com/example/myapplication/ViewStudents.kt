@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -36,20 +37,25 @@ class ViewStudents : AppCompatActivity() {
 
     private fun readData(userid:String){
         binding.dataLayout.visibility = View.GONE
+        binding.noDataLayout.visibility = View.GONE
         binding.loaderLayout.visibility = View.VISIBLE
         studentArrayList.clear()
-        FirebaseDatabase.getInstance().getReference("Student").addListenerForSingleValueEvent(object :
-            ValueEventListener {
+        FirebaseDatabase.getInstance().getReference("Student")
+            .orderByChild("teacherId")
+            .equalTo(userid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.exists()){
                     for(fineSnapshot in snapshot.children){
-                        if(fineSnapshot.child("teacherId").value.toString() == userid){
-                            val studentItem =  fineSnapshot.getValue(Student::class.java)
-                            studentArrayList.add(studentItem!!)
-                        }
+                        val studentItem =  fineSnapshot.getValue(Student::class.java)
+                        studentArrayList.add(studentItem!!)
                     }
                     studentRecyclerView.adapter = StudentAdapter(studentArrayList,this@ViewStudents)
                     binding.dataLayout.visibility = View.VISIBLE
+                    binding.loaderLayout.visibility = View.GONE
+                }else{
+                    binding.dataLayout.visibility = View.GONE
+                    binding.noDataLayout.visibility = View.VISIBLE
                     binding.loaderLayout.visibility = View.GONE
                 }
             }
@@ -59,7 +65,6 @@ class ViewStudents : AppCompatActivity() {
         })
     }
     fun onItemClick(position: Int) {
-
     }
 
 }
