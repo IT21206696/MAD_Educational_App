@@ -39,7 +39,7 @@ class Login : AppCompatActivity() {
         if(email.isNotEmpty() && password.isNotEmpty()){
             binding.loginLayout.visibility = View.GONE
             binding.loaderLayout.visibility = View.VISIBLE
-            //user login only
+            //user login only..
             user.signInWithEmailAndPassword(email,password)
                 .addOnCompleteListener{mtask->
                     if(mtask.isSuccessful){
