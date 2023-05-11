@@ -23,7 +23,7 @@ class Dashboard : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(R.anim.fadein,R.anim.so_slide)
             finish()
-        }*/
+        }*///
 
         binding.addStudent.setOnClickListener{
             val intent = Intent(this,AddStudent::class.java)
