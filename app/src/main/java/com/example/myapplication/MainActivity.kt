@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         binding.mainSplashLogo.animate().setDuration(1000).alpha(1f)
 
         if (ConnectionCheck.checkForInternet(this)) {
-            //device is connected to the internet
+            //device is connected with internet
             handler = Handler()
             handler.postDelayed({
                 if(user.currentUser == null){
